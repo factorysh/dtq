@@ -4,9 +4,12 @@ import asyncio
 async def on_client(client_reader: asyncio.StreamReader,
                     client_writer: asyncio.StreamWriter):
     print("Paf, a client")
-    line = await client_reader.readline()
-    print(line)
-    client_writer.close()
+    while True:
+        line = await client_reader.readline()
+        print(line)
+        if client_reader.at_eof():
+            client_writer.close()
+            return
 
 
 async def serve(path: str):

@@ -6,8 +6,9 @@ async def client(path: str):
     r, w = await asyncio.open_unix_connection(path)
     msg = (" ".join(sys.argv[1:])).encode()
     print(msg)
-    w.write(msg)
-    w.write(b"\n")
+    for msg in sys.argv[1:]:
+        w.write(msg.encode())
+        w.write(b"\n")
     w.write_eof()
 
 
