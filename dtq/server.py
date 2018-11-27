@@ -1,9 +1,7 @@
 import asyncio
-import struct
-import pickle
 from subprocess import PIPE
 
-from message import Message
+from message import Message, load
 
 
 class Server:
@@ -14,8 +12,7 @@ class Server:
     async def on_client(self, client_reader: asyncio.StreamReader,
                         client_writer: asyncio.StreamWriter):
         print("Paf, a client")
-        l = struct.unpack("i", await client_reader.readexactly(4))[0]
-        m = pickle.loads(await client_reader.readexactly(l))
+        m = await load(client_reader)
         await self.queue.put(m)
         client_writer.close()
 

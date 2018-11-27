@@ -1,9 +1,7 @@
 import asyncio
 import sys
-import pickle
-import struct
 
-from message import Message
+from message import Message, dump
 
 
 async def client(path: str):
@@ -11,9 +9,7 @@ async def client(path: str):
     msg = (" ".join(sys.argv[1:])).encode()
     print(msg)
     m = Message(msg)
-    blob = pickle.dumps(m)
-    w.write(struct.pack("i", len(blob)))
-    w.write(blob)
+    await dump(w, m)
 
 
 if __name__ == '__main__':
