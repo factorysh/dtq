@@ -5,6 +5,7 @@ from message import Command, load
 
 
 async def do_command(cmd: Command):
+    "Execute shell command"
     p = await asyncio.create_subprocess_shell(cmd.line,
                                               stdout=PIPE,
                                               stderr=PIPE,
@@ -33,6 +34,7 @@ class Server:
     async def action_loop(self):
         while True:
             envelope = await self.queue.get()
+            # Routing the envelope to a registered action
             if envelope.action not in self.actions:
                 print("Action unknown: ", envelope.action)
                 continue
