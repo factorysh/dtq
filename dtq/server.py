@@ -1,13 +1,26 @@
 import asyncio
 from subprocess import PIPE
 
-from message import Message, load
+from message import Command, load
+
+
+async def do_command(cmd: Command):
+    p = await asyncio.create_subprocess_shell(cmd.line,
+                                              stdout=PIPE,
+                                              stderr=PIPE)
+    await p.wait()
+    while True:
+        line = await p.stdout.readline()
+        if len(line) == 0:
+            break
+        print(line)
 
 
 class Server:
 
     def __init__(self, path: str):
         self.path = path
+        self.actions = dict(command=do_command)
 
     async def on_client(self, client_reader: asyncio.StreamReader,
                         client_writer: asyncio.StreamWriter):
@@ -18,15 +31,11 @@ class Server:
 
     async def action_loop(self):
         while True:
-            m = await self.queue.get()
-            p = await asyncio.create_subprocess_shell(m.msg, stdout=PIPE,
-                                                      stderr=PIPE)
-            await p.wait()
-            while True:
-                line = await p.stdout.readline()
-                if len(line) == 0:
-                    break
-                print(line)
+            envelope = await self.queue.get()
+            if envelope.action not in self.actions:
+                print("Action unknown: ", envelope.action)
+                continue
+            await self.actions[envelope.action](envelope.args)
 
     async def serve(self):
         print("Path: ", self.path)

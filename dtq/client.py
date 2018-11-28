@@ -1,14 +1,18 @@
 import asyncio
 import sys
+import os
 
-from message import Message, dump
+from message import Envelope, Command, dump
 
 
 async def client(path: str):
     r, w = await asyncio.open_unix_connection(path)
     msg = (" ".join(sys.argv[1:])).encode()
     print(msg)
-    m = Message(msg)
+    env = dict()
+
+    m = Envelope(action="command", args=Command(msg,
+                                                env=dict(os.environ.items())))
     await dump(w, m)
 
 
