@@ -7,7 +7,8 @@ from message import Command, load
 async def do_command(cmd: Command):
     p = await asyncio.create_subprocess_shell(cmd.line,
                                               stdout=PIPE,
-                                              stderr=PIPE)
+                                              stderr=PIPE,
+                                              env=cmd.env)
     await p.wait()
     while True:
         line = await p.stdout.readline()
