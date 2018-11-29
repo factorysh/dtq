@@ -1,16 +1,14 @@
 import asyncio
 from subprocess import PIPE
 
-from message import Command, load
+from message import load
 
 
 async def do_command(line="", env=None):
     "Execute shell command"
     if env is None:
         env = dict()
-    p = await asyncio.create_subprocess_shell(line,
-                                              stdout=PIPE,
-                                              stderr=PIPE,
+    p = await asyncio.create_subprocess_shell(line, stdout=PIPE, stderr=PIPE,
                                               env=env)
     await p.wait()
     while True:
@@ -22,9 +20,22 @@ async def do_command(line="", env=None):
 
 class Server:
 
-    def __init__(self, path: str):
+    def __init__(self, path: str, actions: dict = None):
         self.path = path
-        self.actions = dict(command=do_command)
+        self.actions = dict()
+        if actions is not None:
+            for name, action in actions.items():
+                self.register(name, action)
+
+    def register(self, name, action):
+        assert asyncio.iscoroutinefunction(action)
+        self.actions[name] = action
+
+    def action(self, name):
+        def decorate(func):
+            self.register(name, func)
+            return func
+        return decorate
 
     async def on_client(self, client_reader: asyncio.StreamReader,
                         client_writer: asyncio.StreamWriter):
@@ -54,6 +65,12 @@ class Server:
 if __name__ == '__main__':
     loop = asyncio.get_event_loop()
     s = Server("/tmp/dtq")
+    s.register("command", do_command)
+
+    @s.action("hello")
+    async def hello(name: str = ""):
+        print("Hello ", name)
+
     loop.run_until_complete(s.serve())
     loop.run_forever()
     loop.close()

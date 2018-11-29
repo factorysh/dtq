@@ -11,6 +11,7 @@ async def client(path: str):
     print(msg)
     env = dict()
 
+    #await dump(w, Envelope(action="hello", args=dict(name="Bob")))
     m = Envelope(action="command", args=dict(line=msg,
                                              env=dict(os.environ.items())))
     await dump(w, m)
