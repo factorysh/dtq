@@ -2,7 +2,7 @@ import asyncio
 import sys
 import os
 
-from message import Envelope, Command, dump
+from message import Envelope, dump
 
 
 async def client(path: str):
@@ -11,8 +11,8 @@ async def client(path: str):
     print(msg)
     env = dict()
 
-    m = Envelope(action="command", args=Command(msg,
-                                                env=dict(os.environ.items())))
+    m = Envelope(action="command", args=dict(line=msg,
+                                             env=dict(os.environ.items())))
     await dump(w, m)
 
 

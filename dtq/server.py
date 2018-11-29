@@ -4,12 +4,14 @@ from subprocess import PIPE
 from message import Command, load
 
 
-async def do_command(cmd: Command):
+async def do_command(line="", env=None):
     "Execute shell command"
-    p = await asyncio.create_subprocess_shell(cmd.line,
+    if env is None:
+        env = dict()
+    p = await asyncio.create_subprocess_shell(line,
                                               stdout=PIPE,
                                               stderr=PIPE,
-                                              env=cmd.env)
+                                              env=env)
     await p.wait()
     while True:
         line = await p.stdout.readline()
@@ -38,7 +40,7 @@ class Server:
             if envelope.action not in self.actions:
                 print("Action unknown: ", envelope.action)
                 continue
-            await self.actions[envelope.action](envelope.args)
+            await self.actions[envelope.action](**envelope.args)
 
     async def serve(self):
         print("Path: ", self.path)
